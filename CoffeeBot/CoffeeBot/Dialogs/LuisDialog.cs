@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
-using AdaptiveCards;
+using CoffeeBot.Services;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 using Microsoft.Bot.Connector;
-using static CoffeeBot.Servicos;
 
 namespace CoffeeBot.Dialogs
 {
     [Serializable]
     public class LuisDialog : LuisDialog<object>
     {
+        private readonly string _github = ConfigurationManager.AppSettings["Github"];
+        private readonly string _image = ConfigurationManager.AppSettings["Image"];
+
         public LuisDialog(ILuisService service) : base(service) { }
 
-        /// <summary>
-        /// Caso a intenção não seja reconhecida.
-        /// </summary>
         [LuisIntent("None")]
         public async Task NoneAsync(IDialogContext context, LuisResult result)
         {
@@ -26,53 +27,48 @@ namespace CoffeeBot.Dialogs
             context.Done<string>(null);
         }
 
-        /// <summary>
-        /// Quando não houve intenção reconhecida.
-        /// </summary>
         [LuisIntent("")]
         public async Task IntencaoNaoReconhecida(IDialogContext context, LuisResult result)
         {
             await context.PostAsync("**( ͡° ͜ʖ ͡°)**");
         }
 
-        /// <summary>
-        /// Caso a intenção não seja reconhecida.
-        /// </summary>
         [LuisIntent("consciencia")]
         public async Task ConscienciaAsync(IDialogContext context, LuisResult result)
         {
             Activity resposta = ((Activity)context.Activity).CreateReply();
 
+            var cardButtons = new List<CardAction>
+            {
+                new CardAction()
+                {
+                    Value = _github,
+                    Type = ActionTypes.OpenUrl,
+                    Title = "Saiba mais..."
+                }
+            };
+
             HeroCard card = new HeroCard
             {
-                Buttons = new List<CardAction>
-                {
-                    new CardAction(ActionTypes.OpenUrl, "Saiba mais", value:"google.com")
-                }
+                Title = "Eu sou um bot que faz café",
+                Subtitle = "Fui criado pelo **Victor Damke** para a **Maratona Bots** da Microsoft.",
+                Buttons = cardButtons
             };
 
             resposta.Attachments.Add(card.ToAttachment());
 
-            await context.PostAsync("Eu sou um bot que faz café");
-            await context.PostAsync("Fui criado pelo **Victor Damke** para a **Maratona Bots** da Microsoft.");
             await context.PostAsync(resposta);
         }
 
-        /// <summary>
-        /// Quando a intenção for por ajuda.
-        /// </summary>
-        [LuisIntent("ajudar")]
+        [LuisIntent("ajuda")]
         public async Task AjudarAsync(IDialogContext context, LuisResult result)
         {
             var response = "Minha principal função é **fazer café**, é só pedir que eu faço um para você agora." +
-                           " Você pode também só me mandar uma **foto da sua xícara vazia** que eu entendo o recado ;)";
+                           " Você pode também só me mandar uma **foto da sua xícara** que eu entendo o recado.";
             await context.PostAsync(response);
         }
 
-        /// <summary>
-        /// Quando a intenção for uma saudação.
-        /// </summary>
-        [LuisIntent("saudar")]
+        [LuisIntent("cumprimento")]
         public async Task Saudar(IDialogContext context, LuisResult result)
         {
             var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time")).TimeOfDay;
@@ -83,110 +79,100 @@ namespace CoffeeBot.Dialogs
             else saudacao = "Boa noite!";
 
             Activity resposta = ((Activity)context.Activity).CreateReply();
+            resposta.Attachments = new List<Attachment>();
 
-            AdaptiveCard card = new AdaptiveCard();
+            HeroCard card = await CriarHeroCard(saudacao, true, false);
 
-            card.Body.Add(new TextBlock()
-            {
-                Text = $"{ saudacao } Você aceita um café?",
-                Size = TextSize.Medium
-            });
-
-            card.Body.Add(new Image()
-            {
-                Url = "https://drnkcoffee.com/wp-content/uploads/2016/06/cogffee.png",
-                Size = ImageSize.Auto
-            });
-
-            card.Actions.Add(new HttpAction()
-            {
-                Url = "http://192.168.0.101:8000/cafeteira/liga",
-                Title = "Aceitar"
-            });
-
-            card.Actions.Add(new SubmitAction()
-            {
-                Title = "Recusar"
-            });
-
-            Attachment attachment = new Attachment()
-            {
-                ContentType = AdaptiveCard.ContentType,
-                Content = card
-            };
-
-            resposta.Attachments.Add(attachment);
+            resposta.Attachments.Add(card.ToAttachment());
             await context.PostAsync(resposta);
         }
 
-        /// <summary>
-        /// Quando a intenção for descrever uma imagem.
-        /// </summary>
-        [LuisIntent("descrever-imagem")]
+        [LuisIntent("descreve-imagem")]
         public async Task DescreverImagen(IDialogContext context, LuisResult result)
         {
             await context.PostAsync("Ok, me envia a imagem a ser analisada.");
             context.Wait((c, a) => ProcessarImagemAsync(c, a));
         }
 
-        /// <summary>
-        /// Quando a intenção for pedir um café.
-        /// </summary>
-        [LuisIntent("pedir-cafe")]
+        [LuisIntent("quero-cafe")]
         public async Task PedirCafe(IDialogContext context, LuisResult result)
         {
-            string[] frases = { "Pelo que eu entendi você quer um café, certo?",
+            string[] frases = { "Pelo que eu entendi você quer um café?",
                                 "Vou fazer um café pra você ok?",
                                 "Beleza! Vou fazer um café para você, ok?",
                                 "Então você gostaria de um café?",
                                 "Você quer um café?" };
 
             int index = new Random().Next(0, frases.Length);
+
             Activity resposta = ((Activity)context.Activity).CreateReply();
+            resposta.Attachments = new List<Attachment>();
 
-            AdaptiveCard card = new AdaptiveCard();
+            HeroCard card = await CriarHeroCard(frases[index], false, true);
 
-            card.Body.Add(new TextBlock()
-            {
-                Text = frases[index],
-                Size = TextSize.Medium
-            });
-
-            card.Body.Add(new Image()
-            {
-                Url = "https://drnkcoffee.com/wp-content/uploads/2016/06/cogffee.png",
-                Size = ImageSize.Auto
-            });
-
-            card.Actions.Add(new HttpAction()
-            {
-                Url = "http://192.168.0.101:8000/cafeteira/liga",
-                Title = "Aceitar"
-            });
-
-            card.Actions.Add(new SubmitAction()
-            {
-                Title = "Recusar"
-            });
-
-            Attachment attachment = new Attachment()
-            {
-                ContentType = AdaptiveCard.ContentType,
-                Content = card
-            };
-
-            resposta.Attachments.Add(attachment);
+            resposta.Attachments.Add(card.ToAttachment());
             await context.PostAsync(resposta);
         }
 
-        /// <summary>
-        /// Quando a intenção for possibilidades.
-        /// </summary>
         [LuisIntent("possibilidades")]
         public async Task Possibilidades(IDialogContext context, LuisResult result)
         {
             await context.PostAsync("Atualmente eu só faço café, no futuro talvez também faça chá...");
         }
+
+        [LuisIntent("desliga-cafeteira")]
+        public async Task DesligarCafeteira(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync(await new CafeteiraService().EnviarAsync("desligar"));
+        }
+
+        [LuisIntent("positivo")]
+        public async Task Positivo(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync(await new CafeteiraService().EnviarAsync("ligar"));
+        }
+
+        [LuisIntent("negativo")]
+        public async Task Negativo(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync("Ok, me avise quando quiser um café.");
+        }
+
+        private async Task<HeroCard> CriarHeroCard(string titulo, bool comSubtitulo, bool comImagem)
+        {
+            var cardButtons = new List<CardAction>
+            {
+                new CardAction()
+                {
+                    Value = "Sim, por favor",
+                    Type = ActionTypes.ImBack,
+                    Title = "Aceitar"
+                },
+                new CardAction()
+                {
+                    Value = "Não, obrigado",
+                    Type = ActionTypes.ImBack,
+                    Title = "Recusar"
+                }
+            };
+
+            string subtitulo = "Você aceita um café?";
+
+            List<CardImage> cardImages = new List<CardImage>();
+            cardImages.Add(new CardImage(url: _image));
+
+            var card = new HeroCard()
+            {
+                Title = titulo,
+                Subtitle = comSubtitulo ? subtitulo : null,
+                Images = comImagem ? cardImages : null,
+                Buttons = cardButtons,
+            };
+
+            return card;
+        }
+
+        /*********************************************************************************************************************/
 
         private async Task ProcessarImagemAsync(IDialogContext contexto, IAwaitable<IMessageActivity> argument)
         {
@@ -198,7 +184,7 @@ namespace CoffeeBot.Dialogs
 
             try
             {
-                string reply = await new VisaoComputacional().AnaliseDetalhadaAsync(uri) ?
+                string reply = await new VisaoComputacionalService().AnaliseDetalhadaAsync(uri) ?
                     "Achei um café nessa foto" : "Não vejo nenhum café";
                 await contexto.PostAsync(reply);
             }

@@ -9,8 +9,6 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Connector;
 using CoffeeBot.Dialogs;
-using static CoffeeBot.Servicos;
-using System.IO;
 
 namespace CoffeeBot
 {
