@@ -9,6 +9,8 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Connector;
 using CoffeeBot.Dialogs;
+using CoffeeBot.Services;
+using CoffeeBot.Models;
 
 namespace CoffeeBot
 {
@@ -34,14 +36,23 @@ namespace CoffeeBot
                     if (activity.Attachments?.Any() == true)
                     {
                         var reply = activity.CreateReply();
-                        //reply.Text = await new VisaoComputacional().AnaliseDetalhadaAsync(new Uri(activity.Attachments[0].ContentUrl)) ? "Achei um café nessa foto" : "Não vejo nenhum café";
-                        reply.Text = "eu deveria analisar sua imagem";
+                        AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(new Uri(activity.Attachments[0].ContentUrl));
 
+                        if(analyze.tags.Select(t => t.name).Contains("coffee") || analyze.tags.Select(t => t.name).Contains("cup"))
+                        {
+                            reply.Text = "Pela foto entendo que você queira um café, estou certo?";
+                        } else
+                        {
+                            var description = analyze.description.captions.FirstOrDefault()?.text;
+                            var confidence = analyze.description.captions.FirstOrDefault()?.confidence *100;
+
+                            reply.Text = $"Não achei nenhum café na sua foto, mas tenho {(int)confidence}% de certeza que isso é *{description}*";
+                        }
                         await connector.Conversations.ReplyToActivityAsync(reply);
                     } else
                     {
                         await Conversation.SendAsync(activity, () => new LuisDialog(service));
-                    }                   
+                    }
                     break;
                 case ActivityTypes.ConversationUpdate:
                     if (activity.MembersAdded.Any(o => o.Id == activity.Recipient.Id))

@@ -8,5 +8,6 @@ namespace CoffeeBot.Models
     {
         public string requestId { get; set; }
         public List<Tag> tags { get; set; }
+        public Description description { get; set; }
     }
 }

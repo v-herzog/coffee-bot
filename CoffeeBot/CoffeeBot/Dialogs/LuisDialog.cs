@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CoffeeBot.Models;
 using CoffeeBot.Services;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
@@ -51,7 +52,7 @@ namespace CoffeeBot.Dialogs
             HeroCard card = new HeroCard
             {
                 Title = "Eu sou um bot que faz café",
-                Subtitle = "Fui criado pelo **Victor Damke** para a **Maratona Bots** da Microsoft.",
+                Subtitle = "Fui criado pelo Victor Damke para a Maratona Bots da Microsoft.",
                 Buttons = cardButtons
             };
 
@@ -64,7 +65,8 @@ namespace CoffeeBot.Dialogs
         public async Task AjudarAsync(IDialogContext context, LuisResult result)
         {
             var response = "Minha principal função é **fazer café**, é só pedir que eu faço um para você agora." +
-                           " Você pode também só me mandar uma **foto da sua xícara** que eu entendo o recado.";
+                           " Você pode também só me mandar uma **foto da sua xícara** que eu entendo o recado." +
+                           " Confira uma lista com o que você pode falar comigo:";
             await context.PostAsync(response);
         }
 
@@ -90,7 +92,7 @@ namespace CoffeeBot.Dialogs
         [LuisIntent("descreve-imagem")]
         public async Task DescreverImagen(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync("Ok, me envia a imagem a ser analisada.");
+            await context.PostAsync("Me envie a url da imagem agora que eu descrevo o que vejo.");
             context.Wait((c, a) => ProcessarImagemAsync(c, a));
         }
 
@@ -172,20 +174,30 @@ namespace CoffeeBot.Dialogs
             return card;
         }
 
-        /*********************************************************************************************************************/
-
         private async Task ProcessarImagemAsync(IDialogContext contexto, IAwaitable<IMessageActivity> argument)
         {
             var activity = await argument;
 
-            var uri = activity.Attachments?.Any() == true ?
-                new Uri(activity.Attachments[0].ContentUrl) :
-                new Uri(activity.Text);
-
             try
             {
-                string reply = await new VisaoComputacionalService().AnaliseDetalhadaAsync(uri) ?
-                    "Achei um café nessa foto" : "Não vejo nenhum café";
+                AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(new Uri(activity.Text));
+
+                var description = analyze.description.captions.FirstOrDefault()?.text;
+                var confidence = analyze.description.captions.FirstOrDefault()?.confidence;
+
+                string confidenceInText;
+
+                if (confidence >= .9)
+                    confidenceInText = "Tenho certeza que é";
+
+                else if (confidence < .9 && confidence > .6)
+                    confidenceInText = "Acho que pode ser";
+
+                else
+                    confidenceInText = "Talvez seja";
+
+                string reply = $"{confidenceInText} *{description}*";
+
                 await contexto.PostAsync(reply);
             }
             catch (Exception)

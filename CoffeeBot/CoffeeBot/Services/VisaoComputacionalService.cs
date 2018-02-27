@@ -16,15 +16,14 @@ namespace CoffeeBot.Services
         private readonly string _computerVisionApiKey = ConfigurationManager.AppSettings["ComputerVisionApiKey"];
         private readonly string _computerVisionUri = ConfigurationManager.AppSettings["ComputerVisionUri"];
 
-        public async Task<bool> AnaliseDetalhadaAsync(Uri query)
+        public async Task<AnalyzeResult> AnaliseDetalhadaAsync(Uri query)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _computerVisionApiKey);
 
             HttpResponseMessage response = null;
 
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
-            queryString["visualFeatures"] = "Tags";
+            string queryString = "visualFeatures=Tags,Description";
 
             var byteData = Encoding.UTF8.GetBytes("{ 'url': '" + query + "' }");
 
@@ -37,10 +36,7 @@ namespace CoffeeBot.Services
 
             var responseString = await response.Content.ReadAsStringAsync();
 
-            var analise = JsonConvert.DeserializeObject<AnalyzeResult>(responseString);
-
-            return analise.tags.Select(t => t.name).Contains("coffee") ||
-                   analise.tags.Select(t => t.name).Contains("cup");
+            return JsonConvert.DeserializeObject<AnalyzeResult>(responseString);
         }
     }
 }
