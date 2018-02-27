@@ -1,7 +1,7 @@
 # Coffee-Bot
 
 This project was created for the [Microsoft Bot Marathon](https://ticapacitacion.com/curso/botspt) and its goal is to help the 
-user prepare a coffee by turning his coffee maker on, it does this analysing both texts and images the user can send to him.
+user prepare a coffee by turning his coffee maker on, it does this analyzing both texts and images the user can send to him.
 
 ### Architecture
 The bot was developed in C# using the [Microsoft Bot Framework](https://dev.botframework.com/) and the Microsoft Cognitive 
@@ -12,7 +12,7 @@ When LUIS understands the intention as being "the user wants coffee" it makes a 
 coffee maker, this API is running on a Raspberry Pi connected to a relay board that powers the coffee maker. The Bot was deployed 
 in Azure and is able to receive inputs from the services: Slack, Skype and web.
 
-![Fluxograma]()
+![Fluxograma](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/fluxograma.png)
 
 The project's functions:
 * Create a bot capable of understand basic conversation and intents;
@@ -31,7 +31,7 @@ It was used a Raspberry Pi model B with [Raspbian OS](https://www.raspberrypi.or
 * `cafeteira/desligar`:  turns off the coffee maker;
 * `cafeteira/estado`: checks the coffee maker state.
 
-They all return the same JSON information:
+They all return the same JSON information, example if the coffee maker is on:
 
 ```
 {
@@ -41,14 +41,14 @@ They all return the same JSON information:
 
 ### Usage
 
-[This site]() hosts a web and a Skype client so that anyone can talk to the bot, it currently supports ten intentions in portuguese, this being:
+[This site](http://mycoffeebot.azurewebsites.net/) hosts a web and a Skype client so that anyone can talk to the bot, it currently supports ten intentions in Portuguese, this being:
 * 'the user greets the bot';
 * 'the user wants coffee';
 * 'the user wants to know all the bot's possibilities';
 * 'the user wants to know what is the bot';
 * 'the user wants the bot to describe an image';
 * 'the user needs help';
-* 'the user says somethng afirmative';
+* 'the user says something affirmative';
 * 'the user says something negative';
 * 'the user wants to turn off the coffee maker';
 * 'none of the above'.
