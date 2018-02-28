@@ -36,7 +36,9 @@ namespace CoffeeBot
                     if (activity.Attachments?.Any() == true)
                     {
                         var reply = activity.CreateReply();
-                        AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(new Uri(activity.Attachments[0].ContentUrl));
+                        var contentUrl = activity.Attachments[0].ContentUrl;
+
+                        AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(contentUrl, activity.ServiceUrl);
 
                         if(analyze.tags.Select(t => t.name).Contains("coffee") || analyze.tags.Select(t => t.name).Contains("cup"))
                         {
@@ -51,7 +53,7 @@ namespace CoffeeBot
                         await connector.Conversations.ReplyToActivityAsync(reply);
                     } else
                     {
-                        await Conversation.SendAsync(activity, () => new LuisDialog(service));
+                        await Conversation.SendAsync(activity, () => new LuisDialog(service, activity.ServiceUrl));
                     }
                     break;
                 case ActivityTypes.ConversationUpdate:

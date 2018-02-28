@@ -18,8 +18,11 @@ namespace CoffeeBot.Dialogs
     {
         private readonly string _github = ConfigurationManager.AppSettings["Github"];
         private readonly string _image = ConfigurationManager.AppSettings["Image"];
+        private string ServiceUrl;
 
-        public LuisDialog(ILuisService service) : base(service) { }
+        public LuisDialog(ILuisService service, string serviceUrl) : base(service) {
+            this.ServiceUrl = serviceUrl;
+        }
 
         [LuisIntent("None")]
         public async Task NoneAsync(IDialogContext context, LuisResult result)
@@ -176,11 +179,11 @@ namespace CoffeeBot.Dialogs
 
         private async Task ProcessarImagemAsync(IDialogContext contexto, IAwaitable<IMessageActivity> argument)
         {
-            var activity = await argument;
+            var message = await argument;
 
             try
             {
-                AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(new Uri(activity.Text));
+                AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(message.Text, this.ServiceUrl);
 
                 var description = analyze.description.captions.FirstOrDefault()?.text;
                 var confidence = analyze.description.captions.FirstOrDefault()?.confidence;
@@ -202,7 +205,7 @@ namespace CoffeeBot.Dialogs
             }
             catch (Exception)
             {
-                await contexto.PostAsync("Errou! Oloco bixo, deu uma exception aqui.");
+                await contexto.PostAsync("Houve algum erro ao analisar sua imagem.");
             }
 
             contexto.Wait(MessageReceived);
