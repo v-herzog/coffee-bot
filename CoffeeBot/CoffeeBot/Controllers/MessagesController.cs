@@ -17,10 +17,6 @@ namespace CoffeeBot
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        /// <summary>
-        /// POST: api/Messages
-        /// Receive a message from a user and reply to it
-        /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
@@ -40,7 +36,9 @@ namespace CoffeeBot
 
                         AnalyzeResult analyze = await new VisaoComputacionalService().AnaliseDetalhadaAsync(contentUrl, activity.ServiceUrl);
 
-                        if(analyze.tags.Select(t => t.name).Contains("coffee") || analyze.tags.Select(t => t.name).Contains("cup"))
+                        if(analyze.tags.Select(t => t.name).Contains("coffee") || analyze.tags.Select(t => t.name).Contains("cup") ||
+                           analyze.description.captions.FirstOrDefault().text.Contains("coffee") ||
+                           analyze.description.captions.FirstOrDefault().text.Contains("cup"))
                         {
                             reply.Text = "Pela foto entendo que você queira um café, estou certo?";
                         } else

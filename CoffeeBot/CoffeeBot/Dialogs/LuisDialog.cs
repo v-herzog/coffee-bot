@@ -68,8 +68,7 @@ namespace CoffeeBot.Dialogs
         public async Task AjudarAsync(IDialogContext context, LuisResult result)
         {
             var response = "Minha principal função é **fazer café**, é só pedir que eu faço um para você agora." +
-                           " Você pode também só me mandar uma **foto da sua xícara** que eu entendo o recado." +
-                           " Confira uma lista com o que você pode falar comigo:";
+                           " Você pode também só me mandar uma **foto da sua xícara** que eu entendo o recado.";
             await context.PostAsync(response);
         }
 

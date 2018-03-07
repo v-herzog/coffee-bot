@@ -53,6 +53,8 @@ They all return the same JSON information, example if the coffee maker is on:
 * 'the user wants to turn off the coffee maker';
 * 'none of the above'.
 
-Example of conversation where the user asks for a coffee and the bot sends the order to the Raspberry Pi and it turns the coffee maker on:
+Example of conversations:
 
-There is also a video with the project's overview that was a requirement for the Bot Marathon:
+![Exemplo de texto](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/exemplo-texto.gif)
+
+![Exemplo de imagem](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/exemplo-upload-imagem.gif)
