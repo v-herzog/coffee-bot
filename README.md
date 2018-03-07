@@ -53,8 +53,10 @@ They all return the same JSON information, example if the coffee maker is on:
 * 'the user wants to turn off the coffee maker';
 * 'none of the above'.
 
-Example of conversations:
+Example of conversation using text:
 
 ![Exemplo de texto](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/exemplo-texto.gif)
+
+Example of conversation sending images by attachments and by url, if the bot recognizes something that he understands as coffee, he will ask if the user wants a coffee. If the image doesn't contains coffee or a mug, the bot will describe the image and inform the percentange of certant of that description:
 
 ![Exemplo de imagem](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/exemplo-upload-imagem.gif)
