@@ -60,3 +60,7 @@ Example of conversation using text:
 Example of conversation sending images by attachments and by url, if the bot recognizes something that he understands as coffee, he will ask if the user wants a coffee. If the image doesn't contains coffee or a mug, the bot will describe the image and inform the percentange of certant of that description:
 
 ![Exemplo de imagem](https://raw.githubusercontent.com/v-herzog/coffee-bot/master/docs/exemplo-upload-imagem.gif)
+
+There is also a video showing the coffee maker powering on and off with a conversation by Skype:
+
+[![Video demonstration](https://img.youtube.com/vi/x-_1Z-DElq4/0.jpg))](https://youtu.be/x-_1Z-DElq4)
